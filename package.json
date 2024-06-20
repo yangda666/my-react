@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint --ext .tsx,.ts --fix --quiet ./packages",
-    "prepare": "husky"
+    "lint": "eslint --fix --quiet ./packages",
+    "prepare": "husky",
+    "commitlint": "commitlint --edit"
   },
   "keywords": [],
   "author": "",
