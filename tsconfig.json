@@ -1,0 +1,21 @@
+{
+  "compileOnSave": true, // 在文件保存时自动编译
+  "compilerOptions": {
+    "target": "ESNext", // 目标 ECMAScript 版本，使用最新的 ECMAScript 特性
+    "useDefineForClassFields": true, // 使用JavaScript的类字段语法的`define`行为，而不是`assign`行为
+    "module": "ESNext", // 使用最新的 ECMAScript 模块系统
+    "lib": ["ESNext", "DOM"], // 包含的库文件，用于指定环境
+    "moduleResolution": "Node", // 使用 Node.js 模块解析策略
+    "strict": false, // 关闭所有的严格类型检查选项
+    "sourceMap": true, // 生成 source map 文件，便于调试
+    "resolveJsonModule": true, // 允许导入 .json 文件
+    "isolatedModules": true, // 每个文件单独作为一个模块编译，适用于现代构建工具如 Babel
+    "esModuleInterop": true, // 允许与 ES 模块进行互操作
+    "noEmit": true, // 不生成编译后的文件（.js 文件）
+    "noUnusedLocals": true, // 报告未使用的局部变量
+    "noUnusedParameters": true, // 报告未使用的函数参数
+    "noImplicitReturns": false, // 允许函数在某些代码路径上没有返回值
+    "skipLibCheck": true, // 跳过库文件的类型检查，提高编译速度
+    "baseUrl": "./packages" // 基础目录用于解析非相对模块名称
+  }
+}
