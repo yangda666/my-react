@@ -19,5 +19,15 @@ export default [
       'prettier/prettier': ['error'],
       quotes: ['error', 'single', { allowTemplateLiterals: true }]
     }
+  },
+  // Path: typescript-eslint
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      "@typescript-eslint/consistent-type-imports": ["error", {
+        "prefer": "type-imports"
+      }]
+    }
   }
+
 ];

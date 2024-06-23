@@ -61,3 +61,5 @@ export function jsx(type, config, maybeKey) {
   }
   return ReactElement(type, key, ref, props);
 }
+
+export const jsxDEV = jsx;

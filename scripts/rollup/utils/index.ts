@@ -1,3 +1,4 @@
+import replacePlugin from '@rollup/plugin-replace';
 import { readFileSync } from 'fs';
 import path from 'path';
 
@@ -20,6 +21,11 @@ export function getPkgPath(pkgName, isDist = false) {
   return `${pkgPath}/${pkgName}`;
 }
 
-export function getBaseRollupPlugin({ typescript = {} } = {}) {
-  return [comm(), ts(typescript)];
+export function getBaseRollupPlugin({
+  alias = {
+    __DEV__: true
+  },
+  typescript = {}
+} = {}) {
+  return [replacePlugin(alias), comm(), ts(typescript)];
 }

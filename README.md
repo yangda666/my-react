@@ -114,3 +114,133 @@ export default [
   }
 ];
 ```
+
+```
+  生活中充满了无常, 无论我们做了多好的准备我们还是上不了山顶,我们就是要接受生活的无常,
+```
+
+# React Update
+
+## UpdateQueue 的工作原理
+
+1. 双缓冲结构：
+   • UpdateQueue 实际上由两个队列组成：一个当前队列（current queue）和一个正在进行中的队列（work-in-progress queue）。
+   • 当前队列表示屏幕的可见状态，而正在进行中的队列可以异步地被处理和修改，在提交前，它们是相互独立的。
+   • 如果正在进行中的渲染被丢弃，我们会通过克隆当前队列来创建一个新的正在进行中的队列。
+2. 共享的单链表结构：
+   • 这两个队列共享一个持久的单链表结构。
+   • 每个队列维护一个指向第一个未处理更新的指针。
+   • 正在进行中的队列的指针总是等于或大于当前队列的指针，因为我们总是在处理正在进行中的队列。
+   • 当前队列的指针只有在提交阶段才会更新。
+3. 更新的附加：
+   • 为了确保更新不会丢失，我们将更新附加到两个队列的末尾。
+   • 这样保证了更新在下一个正在进行中的队列中也会被处理到。
+
+## 优先级和更新处理
+
+1.  更新优先级：
+    • 更新不是按优先级排序的，而是按插入顺序排列，新的更新总是附加到列表的末尾。
+    • 在渲染阶段处理更新队列时，只有具有足够优先级的更新才会被包含在结果中。
+    • 如果由于优先级不足而跳过一个更新，该更新将保留在队列中，以便在较低优先级的渲染过程中处理。
+2.  高优先级更新的重基：
+    • 被跳过的更新之后的所有更新无论优先级如何都将保留在队列中，这意味着高优先级的更新有时会在两个不同的优先级阶段被处理两次。
+    • 我们也会跟踪一个基状态，表示应用队列中第一个更新之前的状态。
+3.  处理示例：
+    • 假设基状态是 ''，更新队列如下：
+
+            ```s
+            A1 - B2 - C1 - D2;
+            ```
+
+            • 其中数字表示优先级，更新通过在之前状态后追加字母来应用。
+
+            • 第一轮渲染，优先级 1：
+
+            ```s
+            基状态: ''
+            更新: [A1, C1]
+            结果状态: 'AC'
+            ```
+            •	第二轮渲染，优先级 2：
+            ```
+            基状态: 'A'            <- 基状态不包括 C1，因为 B2 被跳过。
+            更新: [B2, C1, D2]   <- C1 被重基于 B2 之上。
+            结果状态: 'ABCD'
+            ```
+
+## 总结
+
+UpdateQueue 通过双缓冲结构和单链表的共享机制，确保了更新操作的顺序处理和不丢失。优先级机制允许在不同优先级下处理更新，最终状态是确定的，不受中间状态的影响。这种设计确保了 React 应用中状态更新的可靠性和一致性。
+
+# React Fiber Tree
+
+## FiberRootNode
+
+在 React 的 Fiber 架构中，FiberRootNode 是一个关键的数据结构，它代表了整个 React 应用的根节点。FiberRootNode 负责管理应用的状态、调度更新和协调渲染。以下是对 FiberRootNode 的详细解释。
+
+### FiberRootNode 的功能:
+
+1. 状态管理：
+   • FiberRootNode 管理整个 React 应用的状态，包括当前的 Fiber 树和待处理的更新。
+2. 更新调度：
+   • 负责调度应用的状态更新，确保高优先级的更新能够优先处理。
+3. 协调渲染：
+   • 协调和处理整个应用的渲染过程，从根节点开始遍历和更新 Fiber 树。
+
+### FiberRootNode 的结构
+
+FiberRootNode 是一个复杂的对象，它包含多个属性来管理和协调应用的状态和更新。以下是 FiberRootNode 的主要属性：
+
+    •	containerInfo：保存根容器的信息（例如 DOM 元素）。
+    •	current：指向当前 Fiber 树的根节点 (即 HostRootFiber).
+    •	pendingChildren：指向待处理的子节点列表。
+    •	finishedWork：指向已经完成工作的 Fiber 树。
+    •	timeoutHandle：用于处理异步更新的定时器。
+    •	context 和 pendingContext：用于管理上下文信息。
+    •	callbackNode 和 callbackPriority：用于调度更新的回调函数和优先级。
+
+## HostRootFiber
+
+HostRootFiber 是 Fiber 树的根节点，它承担了 React 应用的初始挂载和后续更新的协调工作。其主要功能包括：
+
+1. 初始化挂载：
+   • 当 React 应用第一次渲染时，HostRootFiber 负责从根节点开始构建 Fiber 树，并将 React 组件渲染到 DOM 中。
+2. 状态管理：
+   • 管理 React 应用的全局状态，包括上下文和更新队列。
+3. 更新调度：
+   • 处理状态更新，并根据优先级调度这些更新，以确保高优先级的更新能及时响应。
+4. 渲染协调：
+   • 从根节点开始协调 Fiber 树的渲染过程，处理 DOM 的更新和重新渲染。
+
+### HostRootFiber 的结构
+
+HostRootFiber 作为一个 Fiber 节点，包含了一些特定的属性来管理和协调应用的状态和更新。以下是 HostRootFiber 的一些关键属性：
+
+• tag：标识 Fiber 节点的类型，对于 HostRootFiber，其值是 HostRoot。
+• stateNode：指向与此 Fiber 节点关联的具体实例，对于 HostRootFiber，它指向 FiberRootNode。
+• updateQueue：保存需要处理的更新。
+• memoizedState：存储已计算的状态。
+• pendingProps 和 memoizedProps：分别存储新的和已计算的属性。
+
+### FiberRootNode 和 HostRootFiber 的关系
+
+1. FiberRootNode 是整个 React 应用的根节点，用于管理应用的状态、调度更新和协调渲染。
+2. HostRootFiber 是 Fiber 树的根节点，它挂载在 FiberRootNode 上，并通过 FiberRootNode 的 current 属性指向。
+   ![alt text](image-1.png)
+
+### 创建与初始化
+
+在调用 ReactDOM.render 时，React 会创建 FiberRootNode 和 HostRootFiber，并初始化它们的关系。以下是一个简化的过程描述：
+
+1. 创建 FiberRootNode：
+   • 当 ReactDOM.render 被调用时，会首先创建一个 FiberRootNode，它包含整个应用的状态和调度信息。
+2. 创建 HostRootFiber：
+   • 然后创建一个 HostRootFiber，并将其关联到 FiberRootNode 的 current 属性。
+3. 挂载与渲染：
+   • 接着，React 会从 HostRootFiber 开始构建 Fiber 树，并将组件渲染到 DOM 中。
+
+## 总结
+
+• HostRootFiber 是 Fiber 树的根节点，负责管理和协调应用的初始挂载和后续更新。
+• FiberRootNode 管理整个 React 应用的状态和调度信息，而 HostRootFiber 通过 FiberRootNode 的 current 属性指向。
+• 创建与初始化 在调用 ReactDOM.render 时完成，React 会创建 FiberRootNode 和 HostRootFiber，并从根节点开始构建和渲染 Fiber 树。

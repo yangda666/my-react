@@ -14,7 +14,7 @@ export default [
     input: `${pkgPath}/${module}`,
     output: {
       file: `${distPath}/index.js`,
-      name: 'index.js',
+      name: 'React',
       format: 'umd'
       // globals: {
       //   'shared/ReactSymbol': 'ReactSymbol', // 指定外部依赖模块的全局变量名称
@@ -48,6 +48,7 @@ export default [
         name: 'jsx-dev-runtime.js',
         format: 'umd'
       }
-    ]
+    ],
+    plugins: getBaseRollupPlugin()
   }
 ];

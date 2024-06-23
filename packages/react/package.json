@@ -6,13 +6,6 @@
   "dependencies": {
     "shared": "workspace:*"
   },
-  "exports": {
-    ".": {
-      "react-server": "./react.react-server.js",
-      "default": "./index.js"
-    },
-    "./package.json": "./package.json"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC"
