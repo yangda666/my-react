@@ -1,6 +1,11 @@
+import {
+  appendChild,
+  createInstance,
+  createTextInstance
+} from '../../react-dom/src/hostConfig';
 import type { FiberNode } from './fiber';
 import { NoFlags } from './fiberFlags';
-import { createInstance, createTextInstance } from './hostConfig';
+// import { createInstance, createTextInstance } from './hostConfig';
 import { HostComponent, HostRoot, HostText } from './workTags';
 
 export const completeWork = (wip: FiberNode) => {
@@ -14,7 +19,7 @@ export const completeWork = (wip: FiberNode) => {
         // 构建 Dom
         // 将dom插入到Dom树中
         const type = wip.type;
-        const instance = createInstance(type, newProps, wip);
+        const instance = createInstance(type, newProps);
         appendAllChildren(instance, wip);
         // finalizeInitialChildren(instance, type, newProps);
         wip.stateNode = instance;
@@ -53,7 +58,7 @@ function appendAllChildren(parent: any, wip: FiberNode) {
   while (node !== null) {
     if (node.tag === HostComponent || node.tag === HostText) {
       // 如果是 HostComponent 或 HostText，将其 DOM 节点附加到父节点
-      parent.appendChild(node.stateNode);
+      appendChild(parent, node.stateNode);
     } else if (node.child !== null) {
       // 如果有子节点，递归处理
       node = node.child;

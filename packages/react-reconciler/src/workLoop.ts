@@ -8,7 +8,6 @@ import {
 import { MutationMask, NoFlags } from './fiberFlags';
 import { HostRoot } from './workTags';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let workInProgress: FiberNode | null = null;
 
 // 设置当前的工作单元

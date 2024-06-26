@@ -21,7 +21,7 @@
     "baseUrl": "./packages", // 基础目录用于解析非相对模块名称
     "paths": {
       "hostConfig": [
-        "./react-reconciler/src/hostConfig.ts"
+        "./react-dom/src/hostConfig.ts"
       ]
     }
   }

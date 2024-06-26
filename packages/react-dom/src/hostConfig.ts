@@ -1,15 +1,13 @@
 import hasOwnProperty from '../../shared/hasOwnProperty';
-import type { Type } from '../../shared/ReactTypes';
-import type { FiberNode } from './fiber';
 
-export type Container = any;
+export type Container = Element;
 
+export type Instance = Element;
 // export function createInstance(...args: any) {
 //   return {} as any;
 // }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function createInstance(type: Type, props = {}, _fiber: FiberNode) {
+export function createInstance(type: string, props = {}): Instance {
   // 创建一个新的 DOM 元素
   const domElement = document.createElement(type);
 
@@ -41,11 +39,12 @@ export function createInstance(type: Type, props = {}, _fiber: FiberNode) {
   return domElement;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function appendChild(...args) {
-  return {} as any;
+export function appendChild(parent: Instance | Container, child: Instance) {
+  parent.appendChild(child);
 }
 
 export function createTextInstance(text: string) {
   return document.createTextNode(text);
 }
+
+export const appendChildToContainer = appendChild;
