@@ -6,7 +6,7 @@
     "lint": "eslint --fix --quiet ./packages",
     "prepare": "husky",
     "commitlint": "commitlint --edit",
-    "build:dev": "rimraf dist && rollup --bundleConfigAsCjs --config scripts/rollup/react.config.js"
+    "build:dev": "rimraf dist && rollup --bundleConfigAsCjs --config scripts/rollup/dev.config.js"
   },
   "keywords": [],
   "author": "",

@@ -1,4 +1,5 @@
 import { beginWork } from './beginWork';
+import { commitMutationEffects } from './commitWork';
 import { completeWork } from './completeWork';
 import {
   createWorkInProgress,
@@ -18,6 +19,9 @@ function prepareFreshStack(root: FiberRootNode | null) {
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
   // 调度
   const root = markUpdateFormFiberToRoot(fiber);
+  if (root === null) {
+    return;
+  }
   renderRoot(root);
 }
 function markUpdateFormFiberToRoot(fiber: FiberNode) {
@@ -41,12 +45,18 @@ export function renderRoot(root: FiberRootNode) {
       break;
     } catch (error) {
       if (__DEV__) {
-        console.warn('workLoop错误');
+        console.warn('workLoop错误', error);
+        workInProgress = null;
       }
       prepareFreshStack(null);
     }
     // eslint-disable-next-line no-constant-condition
   } while (true);
+
+  if (workInProgress !== null) {
+    console.error('render阶段结束时wip不为null');
+  }
+
   const finishedWork = root.current.alternate;
   root.finishedWork = finishedWork;
   commitRoot(root);
@@ -71,6 +81,7 @@ function commitRoot(root: FiberRootNode) {
   if (subtreeHasEffect || rootHasEffect) {
     // beforeMutation
     // Mutation
+    commitMutationEffects(finishedWork);
     root.current = finishedWork;
     // layout
   } else {
@@ -87,7 +98,6 @@ function workLoop() {
 // 执行工作单元
 function perFormUnitOfWork(fiber: FiberNode) {
   const next = beginWork(fiber);
-  fiber.memoizedProps = fiber.pendingProps;
   if (next === null) {
     completeUniOfWork(fiber);
   } else {
@@ -99,10 +109,15 @@ function perFormUnitOfWork(fiber: FiberNode) {
 function completeUniOfWork(fiber: FiberNode) {
   let node = fiber;
   do {
-    completeWork(node);
+    const next = completeWork(node);
+    if (next !== null) {
+      workInProgress = next;
+      return;
+    }
     const sibling = node.sibling;
     if (sibling) {
-      workInProgress = sibling;
+      workInProgress = next;
+      return;
     }
     node = node.return;
     workInProgress = node;

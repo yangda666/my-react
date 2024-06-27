@@ -1,53 +1,56 @@
-import type { Action } from '../../shared/ReactTypes';
+import type { FiberNode } from './fiber';
+type UpdateAction = any;
 
-export type Update<S> = {
-  action: Action<S>;
-  // hasEagerState: boolean;
-  // eagerState: S | null;
-  // next: Update<S>;
-};
+export interface Update {
+  action: UpdateAction;
+}
 
-export type UpdateQueue<S> = {
+export type UpdateQueue = {
   shared: {
-    pending: Update<S> | null;
+    pending: Update | null;
   };
 };
 
-export const createUpdate = <S>(action: Action<S>) => {
+export const createUpdate = (action: UpdateAction) => {
   return {
     action
   };
 };
 
-export const createUpdateQueue = <S>() => {
+export const createUpdateQueue = () => {
   return {
     shared: {
       pending: null
     }
-  } as UpdateQueue<S>;
-};
-
-export const enqueueUpdate = <A>(
-  updateQueue: UpdateQueue<A>,
-  update: Update<A>
-) => {
-  updateQueue.shared.pending = update;
-};
-
-export const processUpdateQueue = <S>(
-  baseState: S,
-  pendingUpdate: Update<S>
-): { memoizedState: S } => {
-  const result: ReturnType<typeof processUpdateQueue<S>> = {
-    memoizedState: baseState
   };
-  if (pendingUpdate !== null) {
-    const action = pendingUpdate.action;
-    if (action instanceof Function) {
-      result.memoizedState = action(baseState);
-    } else {
-      result.memoizedState = action;
-    }
+};
+
+export const enqueueUpdate = (fiber: FiberNode, update: Update) => {
+  const updateQueue = fiber.updateQueue;
+  if (updateQueue !== null) {
+    updateQueue.shared.pending = update;
   }
-  return result;
+};
+
+// 消费
+export const processUpdateQueue = (fiber: FiberNode) => {
+  const updateQueue = fiber.updateQueue;
+  let newState = null;
+  if (updateQueue) {
+    const pending = updateQueue.shared.pending;
+    const pendingUpdate = pending;
+    updateQueue.shared.pending = null;
+
+    if (pendingUpdate !== null) {
+      const action = pendingUpdate.action;
+      if (typeof action === 'function') {
+        newState = action();
+      } else {
+        newState = action;
+      }
+    }
+  } else {
+    console.error(fiber, ' processUpdateQueue时 updateQueue不存在');
+  }
+  fiber.memoizedState = newState;
 };

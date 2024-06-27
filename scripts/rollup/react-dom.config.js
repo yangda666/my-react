@@ -38,6 +38,9 @@ export default [
           name,
           description,
           version,
+          peerDependencies: {
+            react: version
+          },
           main: 'index.js'
         })
       })

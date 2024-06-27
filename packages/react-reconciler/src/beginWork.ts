@@ -1,7 +1,6 @@
 import type { ReactElementType } from '../../shared/ReactTypes';
 import { mountChildFiber, reconcileChildFibers } from './childFibers';
 import type { FiberNode } from './fiber';
-import type { UpdateQueue } from './updateQueue';
 import { processUpdateQueue } from './updateQueue';
 import {
   FunctionComponent,
@@ -29,12 +28,7 @@ export function beginWork(wip: FiberNode) {
 }
 
 function updateHostRoot(wip: FiberNode) {
-  const baseState = wip.memoizedState;
-  const updateQueue = wip.updateQueue as UpdateQueue<Element>;
-  const pending = updateQueue.shared.pending;
-  updateQueue.shared.pending = null;
-  const { memoizedState } = processUpdateQueue(baseState, pending);
-  wip.memoizedState = memoizedState;
+  processUpdateQueue(wip);
   const nextChildren = wip.memoizedState;
   reconcileChildren(wip, nextChildren);
   return wip.child;
