@@ -20,7 +20,6 @@ export default [
       quotes: ['error', 'single', { allowTemplateLiterals: true }]
     }
   },
-  // Path: typescript-eslint
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',

@@ -1,6 +1,7 @@
 {
   "compileOnSave": true, // 在文件保存时自动编译
   "compilerOptions": {
+    "jsx": "react",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "target": "ESNext", // 目标 ECMAScript 版本，使用最新的 ECMAScript 特性
@@ -22,7 +23,7 @@
     "paths": {
       "hostConfig": [
         "./react-dom/src/hostConfig.ts"
-      ]
+      ],
     }
   }
 }

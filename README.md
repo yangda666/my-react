@@ -151,11 +151,11 @@ export default [
             ```s
             A1 - B2 - C1 - D2;
             ```
-        
+
             • 其中数字表示优先级，更新通过在之前状态后追加字母来应用。
-        
+
             • 第一轮渲染，优先级 1：
-        
+
             ```s
             基状态: ''
             更新: [A1, C1]
@@ -250,7 +250,5 @@ HostRootFiber 作为一个 Fiber 节点，包含了一些特定的属性来管�
 React Reconciler 是 React 库中负责管理虚拟 DOM 更新和高效地将这些更新应用到真实 DOM 的部分。 它的主要任务是处理虚拟 DOM 和真实 DOM 之间的差异,并确保这些差异高效地更新到真实 DOM 中。
 
 ## beginWork
-
-
 
 ## completeWork

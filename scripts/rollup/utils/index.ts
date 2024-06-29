@@ -1,11 +1,11 @@
+import comm from '@rollup/plugin-commonjs';
 import replacePlugin from '@rollup/plugin-replace';
 import { readFileSync } from 'fs';
 import path from 'path';
 
-const pkgPath = path.resolve(__dirname, '../../packages');
-const distPath = path.resolve(__dirname, '../../dist/node_modules');
+const pkgPath = path.resolve(__dirname, '../../../packages');
+const distPath = path.resolve(__dirname, '../../../dist/node_modules');
 
-import comm from '@rollup/plugin-commonjs';
 import ts from 'rollup-plugin-typescript2';
 export function getPackagesJson(pkgName) {
   const path = getPkgPath(pkgName) + '/package.json';
@@ -15,6 +15,7 @@ export function getPackagesJson(pkgName) {
 }
 
 export function getPkgPath(pkgName, isDist = false) {
+  console.log(pkgName, pkgPath);
   if (isDist) {
     return `${distPath}/${pkgName}`;
   }
