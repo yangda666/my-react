@@ -32,7 +32,9 @@ export const commitMutationEffects = (finishedWork: FiberNode) => {
 
 const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
   const flags = finishedWork.flags;
+
   if ((flags & Placement) !== NoFlags) {
+    // 插入/移动
     commitPlacement(finishedWork);
     finishedWork.flags &= ~Placement;
   }
@@ -53,7 +55,7 @@ const commitPlacement = (finishedWork: FiberNode) => {
   }
 
   // appendChild / insertBefore
-  appendPalcementNodeIntoConatiner(finishedWork, parentStateNode);
+  appendPlacementNodeIntoContainer(finishedWork, parentStateNode);
 };
 
 const getHostParent = (fiber: FiberNode) => {
@@ -69,19 +71,21 @@ const getHostParent = (fiber: FiberNode) => {
   return null;
 };
 
-const appendPalcementNodeIntoConatiner = (
+// 插入到HostContainer
+const appendPlacementNodeIntoContainer = (
   finishedWork: FiberNode,
   hostParent: Container
 ) => {
   if (finishedWork.tag === HostComponent || finishedWork.tag === HostText) {
     appendChildToContainer(finishedWork.stateNode, hostParent);
+    return;
   }
   const child = finishedWork.child;
   if (child !== null) {
-    appendPalcementNodeIntoConatiner(child, hostParent);
+    appendPlacementNodeIntoContainer(child, hostParent);
     let sibling = child.sibling;
     while (sibling !== null) {
-      appendPalcementNodeIntoConatiner(sibling, hostParent);
+      appendPlacementNodeIntoContainer(sibling, hostParent);
       sibling = sibling.sibling;
     }
   }

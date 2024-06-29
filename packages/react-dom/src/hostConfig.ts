@@ -17,6 +17,9 @@ export const createTextInstance = (content: string) => {
 
 export const appendInitialChild = (parent: Instance, child: Instance) => {
   parent.appendChild(child);
+  if (__DEV__) {
+    console.warn('parent', parent);
+  }
 };
 
 export const appendChildToContainer = (

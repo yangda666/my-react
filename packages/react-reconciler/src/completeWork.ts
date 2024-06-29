@@ -7,7 +7,12 @@ import {
 import type { FiberNode } from './fiber';
 import { NoFlags } from './fiberFlags';
 // import { createInstance, createTextInstance } from './hostConfig';
-import { HostComponent, HostRoot, HostText } from './workTags';
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText
+} from './workTags';
 
 export const completeWork = (workInProgress: FiberNode) => {
   const newProps = workInProgress.pendingProps;
@@ -37,12 +42,17 @@ export const completeWork = (workInProgress: FiberNode) => {
       bubbleProperties(workInProgress);
       return null;
     }
+    case FunctionComponent: {
+      bubbleProperties(workInProgress);
+      return null;
+    }
     default:
       console.error('completeWork未定义的fiber.tag', workInProgress);
       return null;
   }
 };
 
+// 递归处理将所有的子节点挂在父容器中
 function appendAllChildren(parent: Instance, wip: FiberNode) {
   let node = wip.child;
   while (node !== null) {

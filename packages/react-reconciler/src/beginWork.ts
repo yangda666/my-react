@@ -1,6 +1,7 @@
 import type { ReactElementType } from '../../shared/ReactTypes';
 import { mountChildFiber, reconcileChildFibers } from './childFibers';
 import type { FiberNode } from './fiber';
+import { renderWithHook } from './fiberHooks';
 import { processUpdateQueue } from './updateQueue';
 import {
   FunctionComponent,
@@ -16,6 +17,7 @@ export function beginWork(wip: FiberNode) {
     case HostComponent:
       return updateHostComponent(wip);
     case FunctionComponent:
+      return updateFunctionComponent(wip);
       return;
     case HostText:
       return null;
@@ -30,6 +32,13 @@ export function beginWork(wip: FiberNode) {
 function updateHostRoot(wip: FiberNode) {
   processUpdateQueue(wip);
   const nextChildren = wip.memoizedState;
+  reconcileChildren(wip, nextChildren);
+  return wip.child;
+}
+
+// 函数式组件的renconciler
+function updateFunctionComponent(wip: FiberNode) {
+  const nextChildren = renderWithHook(wip);
   reconcileChildren(wip, nextChildren);
   return wip.child;
 }
