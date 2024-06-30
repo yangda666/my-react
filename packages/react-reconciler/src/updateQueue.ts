@@ -1,3 +1,4 @@
+import { Dispatch } from '../../react/src/currentDispatcher';
 import type { FiberNode } from './fiber';
 type UpdateAction = any;
 
@@ -5,10 +6,11 @@ export interface Update {
   action: UpdateAction;
 }
 
-export type UpdateQueue = {
+export type UpdateQueue<State = any> = {
   shared: {
     pending: Update | null;
   };
+  dispatch: Dispatch<State> | null;
 };
 
 export const createUpdate = (action: UpdateAction) => {
@@ -21,7 +23,8 @@ export const createUpdateQueue = () => {
   return {
     shared: {
       pending: null
-    }
+    },
+    dispatch: null
   };
 };
 

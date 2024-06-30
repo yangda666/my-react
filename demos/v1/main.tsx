@@ -1,12 +1,13 @@
-import React from 'react';
-import reactDOM from 'react-dom';
-const Comp = () => (
-  <p>
-    <Child />
-  </p>
-);
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom/client';
+
+const App = () => {
+  const [state, setState] = useState(100);
+  return <p>123</p>;
+};
+
 const Child = () => <span>我是汉字</span>;
 const root = document.getElementById('root');
-console.log(React);
-console.log(reactDOM);
-reactDOM.createRoot(root).render(<Comp />);
+
+console.log(ReactDOM);
+ReactDOM.createRoot(root).render(<App />);
