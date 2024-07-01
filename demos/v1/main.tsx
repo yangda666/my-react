@@ -10,4 +10,4 @@ const Child = () => <span>我是汉字</span>;
 const root = document.getElementById('root');
 
 console.log(ReactDOM);
-ReactDOM.createRoot(root).render(<App />);
+root && ReactDOM.createRoot(root).render(<App />);

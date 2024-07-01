@@ -1,5 +1,6 @@
 {
   "compileOnSave": true, // 在文件保存时自动编译
+  "include": ["./packages/**/*"],
   "compilerOptions": {
     "jsx": "react",
     "noUnusedLocals": false,

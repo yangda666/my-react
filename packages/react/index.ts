@@ -12,8 +12,5 @@ export const useState: Dispatcher['useState'] = (initialState) => {
   const dispatcher = resolveDispatcher();
   return dispatcher.useState(initialState);
 };
-
-export default {
-  version: '0.0.1',
-  creatElement: jsx
-};
+export const version = '0.0.1';
+export const createElement = jsx;

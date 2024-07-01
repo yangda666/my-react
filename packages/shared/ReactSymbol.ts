@@ -1,7 +1,5 @@
-export const REACT_LEGACY_ELEMENT_TYPE: symbol = Symbol.for('react.element');
+const supportSymbol = typeof Symbol === 'function' && Symbol.for;
 
-export const renameElementSymbol = true;
-
-export const REACT_ELEMENT_TYPE: symbol = renameElementSymbol
-  ? Symbol.for('react.transitional.element')
-  : REACT_LEGACY_ELEMENT_TYPE;
+export const REACT_ELEMENT_TYPE = supportSymbol
+  ? Symbol.for('react.element')
+  : 0xeac7;

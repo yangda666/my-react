@@ -15,12 +15,12 @@ export default [
     output: [
       {
         file: `${distPath}/index.js`,
-        name: 'index.js',
+        name: 'ReactDOM',
         format: 'umd'
       },
       {
         file: `${distPath}/client.js`,
-        name: 'client.js',
+        name: 'client',
         format: 'umd'
       }
     ],
@@ -46,5 +46,23 @@ export default [
       })
     ],
     external: [...Object.keys(peerDependencies)]
+  },
+  // react-test-utils
+  {
+    input: `${pkgPath}/test-utils.ts`,
+    external: ['react-dom', 'react'],
+    output: [
+      {
+        file: `${distPath}/jsx-runtime.js`,
+        name: 'jsx-runtime',
+        format: 'umd'
+      },
+      {
+        file: `${distPath}/jsx-dev-runtime.js`,
+        name: 'jsx-dev-runtime',
+        format: 'umd'
+      }
+    ],
+    plugins: getBaseRollupPlugin()
   }
 ];
