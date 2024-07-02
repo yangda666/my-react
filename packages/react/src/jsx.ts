@@ -40,32 +40,36 @@ function hasValidKey(config) {
   return config.key !== undefined;
 }
 
-export function jsx(type: ElementType, config: any = {}, maybeKey: any) {
+export function jsx(type: ElementType, config: any = {}, ...children: any) {
   let propName;
   // Reserved names are extracted
   const props = {};
   let key = null;
   let ref = null;
-  if (maybeKey !== undefined) {
-    key = '' + maybeKey;
-  }
+
   if (config !== null) {
-    if (hasValidRef(config)) {
-      ref = config.ref;
-    }
-
-    if (hasValidKey(config)) {
-      key = config.key;
-    }
-
-    if (config !== null) {
-      for (propName in config) {
-        if (hasOwnProperty.call(config, propName)) {
+    for (propName in config) {
+      if (hasOwnProperty.call(config, propName)) {
+        if (hasValidRef(config)) {
+          ref = config.ref;
+        }
+        if (hasValidKey(config)) {
+          key = '' + config.key;
+        }
+        if (propName !== 'key' && propName !== 'ref') {
           props[propName] = config[propName];
         }
       }
     }
   }
+  if (children !== undefined && children.length > 0) {
+    if (children.length === 1) {
+      props['children'] = children[0];
+    } else {
+      props['children'] = children;
+    }
+  }
+
   return ReactElement(type, key, ref, props);
 }
 
