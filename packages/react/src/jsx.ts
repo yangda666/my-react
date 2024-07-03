@@ -40,11 +40,15 @@ function hasValidKey(config) {
   return config.key !== undefined;
 }
 
-export function jsx(type: ElementType, config: any = {}, ...children: any) {
+export function createElement(
+  type: ElementType,
+  config: any = {},
+  ...children: any
+) {
   let propName;
   // Reserved names are extracted
   const props = {};
-  let key = null;
+  let key: string | null = null;
   let ref = null;
 
   if (config !== null) {
@@ -72,5 +76,36 @@ export function jsx(type: ElementType, config: any = {}, ...children: any) {
 
   return ReactElement(type, key, ref, props);
 }
+
+export const jsx = (type: ElementType, config: any, maybeKey: any) => {
+  let key: string | null = null;
+  const props = {};
+  let ref = null;
+
+  if (maybeKey !== undefined) {
+    key = '' + maybeKey;
+  }
+
+  for (const prop in config) {
+    const val = config[prop];
+    if (prop === 'key') {
+      if (val !== undefined) {
+        key = '' + val;
+      }
+      continue;
+    }
+    if (prop === 'ref') {
+      if (val !== undefined) {
+        ref = val;
+      }
+      continue;
+    }
+    if ({}.hasOwnProperty.call(config, prop)) {
+      props[prop] = val;
+    }
+  }
+
+  return ReactElement(type, key, ref, props);
+};
 
 export const jsxDEV = jsx;

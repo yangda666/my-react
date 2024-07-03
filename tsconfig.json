@@ -5,6 +5,7 @@
     "jsx": "react",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "strictNullChecks": true,
     "target": "ESNext", // 目标 ECMAScript 版本，使用最新的 ECMAScript 特性
     "useDefineForClassFields": true, // 使用JavaScript的类字段语法的`define`行为，而不是`assign`行为
     "module": "ESNext", // 使用最新的 ECMAScript 模块系统

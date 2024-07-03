@@ -3,7 +3,7 @@ import currentDispatcher, {
   Dispatcher,
   resolveDispatcher
 } from './src/currentDispatcher';
-import { jsx } from './src/jsx';
+import { createElement as createElementFn } from './src/jsx';
 
 export const __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = {
   currentDispatcher
@@ -22,4 +22,10 @@ export const isValidElement = (element: any) => {
   );
 };
 export const version = '0.0.1';
-export const createElement = jsx;
+// export const createElement = jsx;
+export const createElement = createElementFn;
+
+export default {
+  version,
+  createElement
+};

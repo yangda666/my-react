@@ -18,7 +18,11 @@ export function updateContainer(
 ) {
   const hostRootFiber = root.current;
   const update = createUpdate(element);
-  enqueueUpdate(hostRootFiber, update);
+  const queue = hostRootFiber.updateQueue;
+  if (queue) {
+    enqueueUpdate(queue, update);
+  }
+
   scheduleUpdateOnFiber(hostRootFiber);
   return element;
 }

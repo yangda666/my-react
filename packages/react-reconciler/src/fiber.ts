@@ -11,7 +11,7 @@ export class FiberNode {
   key: null | string;
   elementType: any;
   type: any;
-  ref: Ref;
+  ref: Ref | null;
   stateNode: any;
   return: FiberNode | null;
   child: FiberNode | null;
@@ -23,7 +23,7 @@ export class FiberNode {
   memoizedState: any;
   flags: Flags;
   subtreeFlags: Flags;
-  deletions: Flags[] | null;
+  deletions: FiberNode[] | null;
   updateQueue: UpdateQueue | null;
   constructor(tag: WorkTag, pendingProps: Props, key: null | string) {
     // Instance
@@ -80,12 +80,14 @@ export const createWorkInProgress = (
     wip = new FiberNode(current.tag, pendingProps, current.key);
     wip.type = current.type;
     wip.stateNode = current.stateNode;
-
     wip.alternate = current;
     current.alternate = wip;
   } else {
     // update
     wip.pendingProps = pendingProps;
+    wip.flags = NoFlags;
+    wip.subtreeFlags = NoFlags;
+    wip.deletions = null;
   }
   wip.updateQueue = current.updateQueue;
   wip.flags = current.flags;

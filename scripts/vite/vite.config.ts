@@ -33,6 +33,6 @@ const config = defineConfig({
   }
 });
 
-console.log(config.resolve.alias);
+console.log(config.resolve?.alias);
 
 export default config;

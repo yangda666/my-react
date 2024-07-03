@@ -2,7 +2,7 @@ import type { ReactElementType } from '../../shared/ReactTypes';
 import { mountChildFiber, reconcileChildFibers } from './childFibers';
 import type { FiberNode } from './fiber';
 import { renderWithHook } from './fiberHooks';
-import { processUpdateQueue } from './updateQueue';
+import { processUpdateQueue, UpdateQueue } from './updateQueue';
 import {
   FunctionComponent,
   HostComponent,
@@ -18,7 +18,6 @@ export function beginWork(wip: FiberNode) {
       return updateHostComponent(wip);
     case FunctionComponent:
       return updateFunctionComponent(wip);
-      return;
     case HostText:
       return null;
     default:
@@ -30,7 +29,9 @@ export function beginWork(wip: FiberNode) {
 }
 
 function updateHostRoot(wip: FiberNode) {
-  processUpdateQueue(wip);
+  const baseState = wip.memoizedState;
+  const updateQueue = wip.updateQueue as UpdateQueue<Element>;
+  wip.memoizedState = processUpdateQueue(baseState, updateQueue, wip);
   const nextChildren = wip.memoizedState;
   reconcileChildren(wip, nextChildren);
   return wip.child;

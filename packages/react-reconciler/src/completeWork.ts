@@ -5,7 +5,7 @@ import {
   createTextInstance
 } from 'hostConfig';
 import type { FiberNode } from './fiber';
-import { NoFlags } from './fiberFlags';
+import { NoFlags, Update } from './fiberFlags';
 // import { createInstance, createTextInstance } from './hostConfig';
 import {
   FunctionComponent,
@@ -14,16 +14,28 @@ import {
   HostText
 } from './workTags';
 
+function markUpdate(fiber: FiberNode) {
+  fiber.flags |= Update;
+}
+
 export const completeWork = (workInProgress: FiberNode) => {
   const newProps = workInProgress.pendingProps;
-
+  const current = workInProgress.alternate;
   switch (workInProgress.tag) {
     case HostComponent: {
-      // 初始化DOM
-      const instance = createInstance(workInProgress.type);
-      // 挂载DOM
-      appendAllChildren(instance, workInProgress);
-      workInProgress.stateNode = instance;
+      if (current !== null && workInProgress.stateNode) {
+      } else {
+        // 初始化DOM
+        const instance = createInstance(workInProgress.type);
+        // 挂载DOM
+        appendAllChildren(instance, workInProgress);
+        workInProgress.stateNode = instance;
+      }
+      // // 初始化DOM
+      // const instance = createInstance(workInProgress.type);
+      // // 挂载DOM
+      // appendAllChildren(instance, workInProgress);
+      // workInProgress.stateNode = instance;
 
       // 初始化元素属性 TODO
 
@@ -35,10 +47,19 @@ export const completeWork = (workInProgress: FiberNode) => {
       bubbleProperties(workInProgress);
       return null;
     case HostText: {
-      // 初始化DOM
-      const textInstanve = createTextInstance(newProps.content);
-      workInProgress.stateNode = textInstanve;
-      // 冒泡flag
+      if (workInProgress.alternate) {
+        // update
+        const oldText = workInProgress.alternate.memoizedProps.content;
+        const newText = workInProgress.memoizedProps.content;
+        if (oldText !== newText) {
+          markUpdate(workInProgress);
+        }
+      } else {
+        // 初始化DOM
+        const textInstanve = createTextInstance(newProps.content);
+        workInProgress.stateNode = textInstanve;
+        // 冒泡flag
+      }
       bubbleProperties(workInProgress);
       return null;
     }

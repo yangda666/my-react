@@ -28,32 +28,31 @@ export const createUpdateQueue = () => {
   };
 };
 
-export const enqueueUpdate = (fiber: FiberNode, update: Update) => {
-  const updateQueue = fiber.updateQueue;
-  if (updateQueue !== null) {
-    updateQueue.shared.pending = update;
-  }
+export const enqueueUpdate = (updateQueue: UpdateQueue, update: Update) => {
+  updateQueue.shared.pending = update;
 };
 
 // 消费
-export const processUpdateQueue = (fiber: FiberNode) => {
-  const updateQueue = fiber.updateQueue;
-  let newState = null;
-  if (updateQueue) {
+export const processUpdateQueue = <State>(
+  baseState: State,
+  updateQueue: UpdateQueue<State>,
+  fiber: FiberNode | null = null
+): State => {
+  if (updateQueue !== null) {
     const pending = updateQueue.shared.pending;
     const pendingUpdate = pending;
     updateQueue.shared.pending = null;
 
     if (pendingUpdate !== null) {
       const action = pendingUpdate.action;
-      if (typeof action === 'function') {
-        newState = action();
+      if (action instanceof Function) {
+        baseState = action(baseState);
       } else {
-        newState = action;
+        baseState = action;
       }
     }
   } else {
-    console.error(fiber, ' processUpdateQueue时 updateQueue不存在');
+    console.error(fiber, 'processUpdateQueue时 updateQueue不存在');
   }
-  fiber.memoizedState = newState;
+  return baseState;
 };

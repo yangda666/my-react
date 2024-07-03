@@ -13,7 +13,9 @@ let workInProgress: FiberNode | null = null;
 
 // 设置当前的工作单元
 function prepareFreshStack(root: FiberRootNode | null) {
-  workInProgress = createWorkInProgress(root.current, null);
+  if (root !== null) {
+    workInProgress = createWorkInProgress(root.current, null);
+  }
 }
 
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
@@ -56,7 +58,6 @@ export function renderRoot(root: FiberRootNode) {
   if (workInProgress !== null) {
     console.error('render阶段结束时wip不为null');
   }
-
   const finishedWork = root.current.alternate;
   root.finishedWork = finishedWork;
   commitRoot(root);
@@ -87,6 +88,9 @@ function commitRoot(root: FiberRootNode) {
   } else {
     root.current = finishedWork;
   }
+  if (__DEV__) {
+    console.warn('commit阶段结束', finishedWork);
+  }
 }
 // 开始
 function workLoop() {
@@ -98,6 +102,8 @@ function workLoop() {
 // 执行工作单元
 function perFormUnitOfWork(fiber: FiberNode) {
   const next = beginWork(fiber);
+  // 执行完beginWork后，pendingProps 变为 memoizedProps
+  fiber.memoizedProps = fiber.pendingProps;
   if (next === null) {
     completeUniOfWork(fiber);
   } else {
@@ -107,7 +113,7 @@ function perFormUnitOfWork(fiber: FiberNode) {
 
 // 完成的工作单元
 function completeUniOfWork(fiber: FiberNode) {
-  let node = fiber;
+  let node: FiberNode | null = fiber;
   do {
     const next = completeWork(node);
     if (next !== null) {
