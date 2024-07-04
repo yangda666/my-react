@@ -151,11 +151,11 @@ export default [
             ```s
             A1 - B2 - C1 - D2;
             ```
-
+        
             • 其中数字表示优先级，更新通过在之前状态后追加字母来应用。
-
+        
             • 第一轮渲染，优先级 1：
-
+        
             ```s
             基状态: ''
             更新: [A1, C1]
@@ -252,3 +252,617 @@ React Reconciler 是 React 库中负责管理虚拟 DOM 更新和高效地将这
 ## beginWork
 
 ## completeWork
+
+# react 设计原理学习
+
+# JSX
+
+### 什么是jsx
+
+JSX 是 JavaScript XML 的缩写，它允许我们在 JavaScript 代码中直接编写类似 HTML 的语法，从而更直观地描述 UI 结构。
+
+### react 中的 jsx
+
+在 React 中，JSX 语法会被编译成 React.createElement 或 jsx 函数调用。这个编译过程通常是通过 Babel 等工具实现的。这种编译结果生成了一个描述 UI 结构的对象，而 React 使用这些对象来构建和更新 DOM。
+
+```jsx
+const element = <h1>Hello, world!</h1>;
+// 编译后结果
+const element = /*#__PURE__*/ React.createElement('h1', null, 'Hello, world!');
+// 或
+import { jsx as _jsx } from 'react/jsx-runtime';
+const element = /*#__PURE__*/ _jsx('h1', {
+  children: 'Hello, world!'
+});
+```
+
+### jsx 两个部分
+
+编译时: 编译时由babel实现
+运行时: 实现 jsx 或 React.createElement 两个方法, 但最终的效果是相同的：创建一个描述 UI 的对象（React 元素）两个方法返回类下面的数据结构描述 UI。
+
+```jsx
+const REACT_ELEMENT_TYPE = Symbol.for('react.element');
+
+function ReactElement(type, key, ref, props) {
+  const element = {
+    // 特殊的标识符，用于标识这是一个 React 元素
+    $$typeof: REACT_ELEMENT_TYPE,
+
+    // 元素的类型，可以是字符串（HTML 标签）或函数（React 组件）
+    type,
+
+    // 元素的唯一标识符（可选），用于优化 React 的调和过程
+    key,
+
+    // 引用，通常用于访问或操作 DOM 元素（可选）
+    ref,
+
+    // 元素的属性
+    props,
+
+    // 自定义字段 实现时与 真实的ReactElement 区分
+    _owner: '_Yzj' // 这里的 '_Yzj' 只是一个示例，占位符，实际中是 Fiber 节点
+  };
+  return element;
+}
+```
+
+#### 实现 JSX 方法
+
+1.  React.createElement 方法
+
+```ts
+const RESERVED_PROPS = {
+  key: true,
+  ref: true
+};
+
+function createElement(type, config, ...children) {
+  const props = {};
+
+  let key = null;
+  let ref = null;
+
+  if (config != null) {
+    if (config.ref !== undefined) {
+      ref = config.ref;
+    }
+    if (config.key !== undefined) {
+      key = '' + config.key;
+    }
+
+    for (const propName in config) {
+      if (
+        Object.prototype.hasOwnProperty.call(config, propName) &&
+        !RESERVED_PROPS.hasOwnProperty(propName)
+      ) {
+        props[propName] = config[propName];
+      }
+    }
+  }
+
+  if (children.length === 1) {
+    props.children = children[0];
+  } else if (children.length > 1) {
+    props.children = children;
+  }
+
+  return ReactElement(type, key, ref, props);
+}
+```
+
+2. jsx 方法
+
+React 17 引入了新的 JSX 转换方式，不再需要显式导入 React。新的转换方式使用两个新的自动导入函数：jsx 和 jsxs。jsx 用于创建没有子元素或只有一个子元素的元素，而 jsxs 用于创建有多个子元素的元素
+
+```jsx
+const element = (
+  <h1>
+    Hello, world! <span>1233</span>
+  </h1>
+);
+// 转化后的结果
+import { jsx as _jsx, jsxs as _jsxs } from 'react/jsx-runtime';
+const element = /*#__PURE__*/ _jsxs('h1', {
+  children: [
+    'Hello, world! ',
+    /*#__PURE__*/ _jsx('span', {
+      children: '1233'
+    })
+  ]
+});
+```
+
+jsx
+
+```ts
+function jsx(
+  type: string | Function,
+  config: Props,
+  maybeKey?: Key
+): ReactElement {
+  const props: Props = {};
+  let key: Key = null;
+  let ref: Ref = null;
+
+  if (maybeKey !== undefined) {
+    key = '' + maybeKey;
+  }
+
+  if (config != null) {
+    if (config.ref !== undefined) {
+      ref = config.ref;
+    }
+    if (config.key !== undefined) {
+      key = '' + config.key;
+    }
+
+    for (const propName in config) {
+      if (
+        Object.prototype.hasOwnProperty.call(config, propName) &&
+        !RESERVED_PROPS.hasOwnProperty(propName)
+      ) {
+        props[propName] = config[propName];
+      }
+    }
+  }
+
+  return ReactElement(type, key, ref, props);
+}
+```
+
+jsxs
+
+```ts
+function jsxs(
+  type: string | Function,
+  config: Props,
+  maybeKey?: Key
+): ReactElement {
+  const props: Props = {};
+  let key: Key = null;
+  let ref: Ref = null;
+
+  if (maybeKey !== undefined) {
+    key = '' + maybeKey;
+  }
+
+  if (config != null) {
+    if (config.ref !== undefined) {
+      ref = config.ref;
+    }
+    if (config.key !== undefined) {
+      key = '' + config.key;
+    }
+
+    for (const propName in config) {
+      if (
+        Object.prototype.hasOwnProperty.call(config, propName) &&
+        !RESERVED_PROPS.hasOwnProperty(propName)
+      ) {
+        props[propName] = config[propName];
+      }
+    }
+  }
+
+  const childrenLength = arguments.length - 2;
+  if (childrenLength === 1) {
+    props.children = arguments[2];
+  } else if (childrenLength > 1) {
+    const childArray = Array(childrenLength);
+    for (let i = 0; i < childrenLength; i++) {
+      childArray[i] = arguments[i + 2];
+    }
+    props.children = childArray;
+  }
+
+  return ReactElement(type, key, ref, props);
+}
+```
+
+# 实现reconciler 架构
+
+**什么是 React Reconciler？**
+
+---
+
+React Reconciler 是 React 内部用于协调和管理组件更新的模块。它的主要任务是根据组件的变化（如状态更新或属性更改），高效地计算出需要更新的部分，并将这些更新应用到真实 DOM 中。
+
+**前端框架的状态驱动**
+
+---
+
+![image-20240703235948674](/Users/junyang/Library/Application Support/typora-user-images/image-20240703235948674.png)
+
+**什么是fiber**
+
+---
+
+在 React 16 之前，React 使用的是同步渲染机制，一旦开始渲染，就会一直执行到完成。这在处理简单的应用时表现良好，但对于复杂的应用，特别是那些需要频繁更新或处理大量数据的应用，会导致卡顿和性能问题。
+
+React Fiber 的目标是解决这些问题，通过引入异步渲染和更细粒度的更新控制，提高 React 的性能和用户体验。其主要设计目标包括：
+
+- **可中断的渲染**：允许在渲染过程中中断和恢复，以响应用户交互和高优先级任务。
+- **增量渲染**：将渲染任务拆分为多个小任务，逐步执行，以减少对主线程的长时间占用。
+- **优先级调度**：根据任务的优先级动态调整任务执行顺序，优先处理高优先级任务。
+- **错误边界和恢复**：改进错误处理机制，增强 React 在遇到错误时的恢复能力。
+
+**fiber的结构**
+
+---
+
+1. **_react 16 Fiber_**
+
+```ts
+
+
+export type Fiber = {
+  tag: WorkTag,// 标识 Fiber 类型的标签
+  key: null | string,// 子节点的唯一标识符
+  elementType: // element.type的值，用于在协调过程中标识,
+  type: any, // Function 或 Class本身 大部分情况和elementType相同
+  stateNode: any,// 与这个 Fiber 对应的 element
+
+  // Fiber 结构
+  return: Fiber | null,// 父节点
+  child: Fiber | null, // 子节点
+  sibling: Fiber | null,// 兄弟节点
+  index: number,//索引，用于区分同级节点
+
+  ref: null | (((handle: mixed) => void) & {_stringRef: ?string}) | RefObject,// 附加此节点的 ref
+
+  // 属性和状态
+  pendingProps: any,//// 新的 props，将在组件更新时使用
+  memoizedProps: any, // 上一次渲染时的 props
+  updateQueue: UpdateQueue<any> | null, // 更新队列，存储组件的更新
+  memoizedState: any,// 上一次渲染时的 state
+  contextDependencies: ContextDependencyList | null,//上下文链表 依赖关系（如 context 依赖）
+  mode: TypeOfMode, // 描述 Fiber 及其子树属性的位字段
+
+  // 副作用标记
+  effectTag: SideEffectTag,
+  nextEffect: Fiber | null,// 下一个具有副作用的 Fiber
+  firstEffect: Fiber | null,// 子树中第一个具有副作用的 Fiber
+  lastEffect: Fiber | null,// 子树中最后一个具有副作用的 Fiber
+  alternate: Fiber | null, // 旧的 Fiber 节点，用于双缓存机制（current 和 workInProgress）
+
+  expirationTime: ExpirationTime,// 表示完成此工作所需的未来时间，不包括其子树中的工作
+  childExpirationTime: ExpirationTime, // 用于确定子树是否有挂起的更改
+};
+
+
+function FiberNode(
+  tag: WorkTag,
+  pendingProps: mixed,
+  key: null | string,
+  mode: TypeOfMode,
+) {
+  // Instance
+  this.tag = tag;
+  this.key = key;
+  this.elementType = null;
+  this.type = null;
+  this.stateNode = null;
+
+  // Fiber
+  this.return = null;
+  this.child = null;
+  this.sibling = null;
+  this.index = 0;
+
+  this.ref = null;
+
+  this.pendingProps = pendingProps;
+  this.memoizedProps = null;
+  this.updateQueue = null;
+  this.memoizedState = null;
+  this.contextDependencies = null;
+
+  this.mode = mode;
+
+  // Effects
+  this.effectTag = NoEffect;
+  this.nextEffect = null;
+
+  this.firstEffect = null;
+  this.lastEffect = null;
+
+  this.expirationTime = NoWork;
+  this.childExpirationTime = NoWork;
+
+  this.alternate = null;
+}
+
+
+
+```
+
+2. **react 18 Fiber**
+
+```ts
+  // A Fiber is work on a Component that needs to be done or was done. There can
+// be more than one per component.
+export type Fiber = {|
+
+  tag: WorkTag,
+
+  // Unique identifier of this child.
+  key: null | string,
+
+  // The value of element.type which is used to preserve the identity during
+  // reconciliation of this child.
+  elementType: any,
+
+  // The resolved function/class/ associated with this fiber.
+  type: any,
+
+  // The local state associated with this fiber.
+  stateNode: any,
+
+  // Conceptual aliases
+  // parent : Instance -> return The parent happens to be the same as the
+  // return fiber since we've merged the fiber and instance.
+
+  // Remaining fields belong to Fiber
+
+  // The Fiber to return to after finishing processing this one.
+  // This is effectively the parent, but there can be multiple parents (two)
+  // so this is only the parent of the thing we're currently processing.
+  // It is conceptually the same as the return address of a stack frame.
+  return: Fiber | null,
+
+  // Singly Linked List Tree Structure.
+  child: Fiber | null,
+  sibling: Fiber | null,
+  index: number,
+
+  // The ref last used to attach this node.
+  // I'll avoid adding an owner field for prod and model that as functions.
+  ref:
+    | null
+    | (((handle: mixed) => void) & {_stringRef: ?string, ...})
+    | RefObject,
+
+  // Input is the data coming into process this fiber. Arguments. Props.
+  pendingProps: any, // This type will be more specific once we overload the tag.
+  memoizedProps: any, // The props used to create the output.
+
+  // A queue of state updates and callbacks.
+  updateQueue: mixed,
+
+  // The state used to create the output
+  memoizedState: any,
+
+  // Dependencies (contexts, events) for this fiber, if it has any
+  dependencies: Dependencies | null,
+
+  // Bitfield that describes properties about the fiber and its subtree. E.g.
+  // the ConcurrentMode flag indicates whether the subtree should be async-by-
+  // default. When a fiber is created, it inherits the mode of its
+  // parent. Additional flags can be set at creation time, but after that the
+  // value should remain unchanged throughout the fiber's lifetime, particularly
+  // before its child fibers are created.
+  mode: TypeOfMode,
+
+  // Effect
+  flags: Flags,
+  subtreeFlags: Flags,
+  deletions: Array<Fiber> | null,
+
+  // Singly linked list fast path to the next fiber with side-effects.
+  nextEffect: Fiber | null,
+
+  // The first and last fiber with side-effect within this subtree. This allows
+  // us to reuse a slice of the linked list when we reuse the work done within
+  // this fiber.
+  firstEffect: Fiber | null,
+  lastEffect: Fiber | null,
+
+  lanes: Lanes,
+  childLanes: Lanes,
+
+  // This is a pooled version of a Fiber. Every fiber that gets updated will
+  // eventually have a pair. There are cases when we can clean up pairs to save
+  // memory if we need to.
+  alternate: Fiber | null,
+
+  // Time spent rendering this Fiber and its descendants for the current update.
+  // This tells us how well the tree makes use of sCU for memoization.
+  // It is reset to 0 each time we render and only updated when we don't bailout.
+  // This field is only set when the enableProfilerTimer flag is enabled.
+  actualDuration?: number,
+
+  // If the Fiber is currently active in the "render" phase,
+  // This marks the time at which the work began.
+  // This field is only set when the enableProfilerTimer flag is enabled.
+  actualStartTime?: number,
+
+  // Duration of the most recent render time for this Fiber.
+  // This value is not updated when we bailout for memoization purposes.
+  // This field is only set when the enableProfilerTimer flag is enabled.
+  selfBaseDuration?: number,
+
+  // Sum of base times for all descendants of this Fiber.
+  // This value bubbles up during the "complete" phase.
+  // This field is only set when the enableProfilerTimer flag is enabled.
+  treeBaseDuration?: number,
+
+ };
+```
+
+由上可知，在react 18 与16的变化是在副作用上的变化：
+
+1. **减少内存使用**：原来的 effectTag 是一个单独的字段，用于标记每个 Fiber 上的副作用。通过使用 flags 和 subtreeFlags，React 可以在同一个字段中标记多个状态和副作用，从而减少内存占用。
+2. **快速判断**：flags 和 subtreeFlags 允许 React 快速判断一个 Fiber 或其子树是否包含需要处理的副作用。这种方式减少了遍历树的次数，提高了渲染和更新的性能。
+3. **批量处理**：通过将多个副作用标记集中在一个字段中，React 可以更高效地批量处理这些标记，减少上下文切换和函数调用的开销。
+4. **更好的可扩展性**：使用位字段（bit fields）可以方便地添加新的标记，而不需要改变现有的结构，这使得 React 在未来增加新功能时更容易扩展。
+5. **支持并发模式** ：React 的并发模式（Concurrent Mode）需要更细粒度的状态管理和副作用控制。flags 和 subtreeFlags 提供了更灵活的机制来标记和处理并发更新，提高了并发模式下的性能和稳定性。
+
+新增的用于支持并发模式的字段：
+
+1. ***lanes*** 字段用于表示当前 Fiber 所处的更新优先级。它是一种位字段（bit field），每个位表示一个独立的更新车道（lane）。通过使用不同的车道，React 可以区分和调度不同优先级的更新，从而实现并发模式下的更细粒度的控制和调度。
+2. ***childLanes*** 字段用于表示子树中的更新优先级。它包含了当前 Fiber 的所有子 Fiber 的更新车道，通过 childLanes，React 可以快速确定子树中是否存在需要处理的高优先级更新。
+
+**React 有ReactElement 为什还需要Fiber**
+
+---
+
+ReactElement 本身提供了描述单个 UI 元素所需的基本数据结构，包括元素的类型、属性和子元素等信息。它在静态结构上提供了一定的灵活性，使得 React 可以根据这些数据创建和更新 DOM 元素。然而，ReactElement 在动态和异步更新、优化渲染顺序、错误恢复和中断渲染等方面存在一些限制，这些限制主要包括以下几个方面：
+
+- **静态结构** ：ReactElement 通常在组件渲染时就确定了其结构和属性。这意味着它描述的是一种静态的、固定的 UI 结构，难以在运行时根据不同条件或用户交互进行动态调整。
+- **渲染控制的限制**： ReactElement 描述的是组件的初始状态和结构，难以直接控制组件在运行时的渲染过程。例如，无法在 ReactElement 中指定优先级或中断渲染任务。
+- **异步更新的挑战**：在处理大型应用或复杂交互时，ReactElement 的静态特性使得难以实现异步更新和增量渲染。这可能导致页面在处理大量数据或复杂交互时性能下降或页面响应变慢。
+- **动态数据的管理**: ReactElement 难以处理动态变化的数据流。例如，当数据发生变化时，ReactElement 需要重新创建新的 ReactElement 对象，而不能直接在现有结构上进行增量更新。
+
+FiberNode的优势:
+
+- **架构** ：react 15 的Reconciler 采用的是递归的方法执行 更新 生成新的ReacElement 并进行diff 渲染，中途不能够被打断。而使用Fibre 架构就可以通过循环的方式执行。
+- **静态的数据结构** ：每一个FiberNode 对应一个React元素, 用于保存react元素的类型,以及对应的DOM信息
+- **动态的工作单元**：每个组件在 React Fiber 中都对应一个 Fiber 节点。Fiber 节点是一个 JavaScript 对象，包含了组件的类型、状态、属性等信息，以及与其他 Fiber 节点的连接关系。每个 Fiber 节点都有一个优先级（如 NoPriority、SyncPriority、InputDiscretePriority 等），调度器根据任务的优先级动态调整执行顺序。
+
+所以我们需要 对 ReactElement 进行扩展 **_实现 FiberNode (工作单元, 存储单元)_**。　react Fiber架构并不是减小浏览器的性能，而是提升用户交互性能
+
+**Reconciler 的工作方式**
+
+------
+
+Reconciler（协调器）是负责管理组件的更新。它的主要工作是处理组件树的变化，确保 UI 的状态与数据的变化保持同步，并通过调度器（Scheduler）来决定何时以及如何执行更新操作。它采用深度优先遍历构建workInProgress Fiber Tree。该过程采用 ‘递’和‘归’ 两个阶段 分别对应  beginWork 和 completeWork。
+
+​	beginWork ：根据当前的fiebrNode 创建下一级的FiberNode，在update 时标记Placement, ChildDelerion。
+
+​	completeWork：在mount 时构建DOM tree, 在update时标记update，并将副作用flag标记向上冒泡到父节点。
+
+**实现方式**
+
+```ts
+let workInProgress: FiberNode | null = null;
+
+export function scheduleUpdateOnFiber(fiber: FiberNode) {
+	const root = markUpdateLaneFromFiberToRoot(fiber);
+
+	if (root === null) {
+		return;
+	}
+	ensureRootIsScheduled(root);
+}
+
+function markUpdateLaneFromFiberToRoot(fiber: FiberNode) {
+	let node = fiber;
+	let parent = node.return;
+	while (parent !== null) {
+		node = parent;
+		parent = node.return;
+	}
+	if (node.tag === HostRoot) {
+		return node.stateNode;
+	}
+	return null;
+}
+
+function ensureRootIsScheduled(root: FiberRootNode) {
+	// 一些调度行为
+	performSyncWorkOnRoot(root);
+}
+
+function performSyncWorkOnRoot(root: FiberRootNode) {
+	// 初始化操作
+	prepareFreshStack(root);
+
+	// render阶段具体操作
+	do {
+		try {
+			workLoop();
+			break;
+		} catch (e) {
+			console.error('workLoop发生错误', e);
+			workInProgress = null;
+		}
+	} while (true);
+
+	if (workInProgress !== null) {
+		console.error('render阶段结束时wip不为null');
+	}
+
+	const finishedWork = root.current.alternate;
+	root.finishedWork = finishedWork;
+
+	// commit阶段操作
+	commitRoot(root);
+}
+
+function commitRoot(root: FiberRootNode) {
+	const finishedWork = root.finishedWork;
+
+	if (finishedWork === null) {
+		return;
+	}
+	// 重置
+	root.finishedWork = null;
+
+	const subtreeHasEffect =
+		(finishedWork.subtreeFlags & MutationMask) !== NoFlags;
+	const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
+
+	if (subtreeHasEffect || rootHasEffect) {
+		// 有副作用要执行
+
+		// 阶段1/3:beforeMutation
+
+		// 阶段2/3:Mutation
+		commitMutationEffects(finishedWork);
+
+		// Fiber Tree切换
+		root.current = finishedWork;
+
+		// 阶段3:Layout
+	} else {
+		// Fiber Tree切换
+		root.current = finishedWork;
+	}
+}
+
+function prepareFreshStack(root: FiberRootNode) {
+	workInProgress = createWorkInProgress(root.current, {});
+}
+
+function workLoop() {
+	while (workInProgress !== null) {
+		performUnitOfWork(workInProgress);
+	}
+}
+
+// 执行工作单元
+function performUnitOfWork(fiber: FiberNode) {
+	const next = beginWork(fiber);
+	// 执行完beginWork后，pendingProps 变为 memoizedProps
+	fiber.memoizedProps = fiber.pendingProps;
+	if (next === null) {
+		completeUnitOfWork(fiber);
+	} else {
+		workInProgress = next;
+	}
+}
+
+function completeUnitOfWork(fiber: FiberNode) {
+	let node: FiberNode | null = fiber;
+
+	do {
+		const next = completeWork(node);
+
+		if (next !== null) {
+			workInProgress = next;
+			return;
+		}
+
+		const sibling = node.sibling;
+		if (sibling) {
+			workInProgress = next;
+			return;
+		}
+		node = node.return;
+		workInProgress = node;
+	} while (node !== null);
+}
+```
+

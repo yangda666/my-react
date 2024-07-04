@@ -1,5 +1,7 @@
-import { FiberNode } from '../../react-reconciler/src/fiber';
-import { HostText } from '../../react-reconciler/src/workTags';
+import { FiberNode } from 'react-reconciler/src/fiber';
+import { HostComponent, HostText } from 'react-reconciler/src/workTags';
+import { Props } from 'shared/ReactTypes';
+import { DOMElement, updateFiberProps } from './SyntheticEvent';
 
 export type Container = Element;
 export type TextInstance = Text;
@@ -8,9 +10,12 @@ export type Instance = Element;
 //   return {} as any;
 // }
 
-export const createInstance = (type: string) => {
+export const createInstance = (type: string, props: Props) => {
   // document.createElement
-  return document.createElement(type);
+  const element = document.createElement(type) as unknown;
+  // 给 dom 绑定属性
+  updateFiberProps(element as DOMElement, props);
+  return element as Element;
 };
 
 export const createTextInstance = (content: string) => {
@@ -37,6 +42,9 @@ export const commitUpdate = (fiber: FiberNode) => {
     case HostText: {
       const text = fiber.pendingProps.content;
       return commitTextUpdate(fiber.stateNode, text);
+    }
+    case HostComponent: {
+      // updateFiberProps()
     }
     default:
       if (__DEV__) {

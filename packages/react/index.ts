@@ -22,7 +22,6 @@ export const isValidElement = (element: any) => {
   );
 };
 export const version = '0.0.1';
-// export const createElement = jsx;
 export const createElement = createElementFn;
 
 export default {

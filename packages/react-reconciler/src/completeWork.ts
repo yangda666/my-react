@@ -7,6 +7,7 @@ import {
 import type { FiberNode } from './fiber';
 import { NoFlags, Update } from './fiberFlags';
 // import { createInstance, createTextInstance } from './hostConfig';
+import { updateFiberProps } from '../../react-dom/src/SyntheticEvent';
 import {
   FunctionComponent,
   HostComponent,
@@ -18,15 +19,21 @@ function markUpdate(fiber: FiberNode) {
   fiber.flags |= Update;
 }
 
+// 对比 curret fiber 与 workInprogress Fiber 的变化创建出新的 element, 并将父作用向上冒泡
 export const completeWork = (workInProgress: FiberNode) => {
   const newProps = workInProgress.pendingProps;
   const current = workInProgress.alternate;
   switch (workInProgress.tag) {
     case HostComponent: {
       if (current !== null && workInProgress.stateNode) {
+        // update
+        // 1. props 是否变化
+        // 2. 变了 Update Flag
+        updateFiberProps(workInProgress.stateNode, newProps);
       } else {
+        // mounted
         // 初始化DOM
-        const instance = createInstance(workInProgress.type);
+        const instance = createInstance(workInProgress.type, newProps);
         // 挂载DOM
         appendAllChildren(instance, workInProgress);
         workInProgress.stateNode = instance;

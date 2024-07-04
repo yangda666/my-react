@@ -18,12 +18,14 @@ function prepareFreshStack(root: FiberRootNode | null) {
   }
 }
 
+// 进行开始深度便利
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
-  // 调度
+  // 获取到根节点
   const root = markUpdateFormFiberToRoot(fiber);
   if (root === null) {
     return;
   }
+  //
   renderRoot(root);
 }
 function markUpdateFormFiberToRoot(fiber: FiberNode) {
@@ -38,7 +40,7 @@ function markUpdateFormFiberToRoot(fiber: FiberNode) {
   }
   return null;
 }
-// 渲染 根 Fiber
+// 从 根 Fiber 开始 renconciler
 export function renderRoot(root: FiberRootNode) {
   prepareFreshStack(root);
   do {
@@ -60,6 +62,7 @@ export function renderRoot(root: FiberRootNode) {
   }
   const finishedWork = root.current.alternate;
   root.finishedWork = finishedWork;
+  // 所有fiber节点 WipTree 构建完成 开始更新副作用
   commitRoot(root);
 }
 

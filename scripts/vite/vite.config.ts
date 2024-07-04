@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
 import { getPkgPath } from '../rollup/utils';
+
 // https://vitejs.dev/config/
 const config = defineConfig({
   plugins: [

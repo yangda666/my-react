@@ -1,11 +1,9 @@
+import generatePackageJson from 'rollup-plugin-generate-package-json';
 import {
   getBaseRollupPlugin,
   getPackagesJson,
   getPkgPath
 } from './utils/index.ts';
-
-import generatePackageJson from 'rollup-plugin-generate-package-json';
-
 const { name, module } = getPackagesJson('react');
 const pkgPath = getPkgPath(name);
 const distPath = getPkgPath(name, true);
@@ -52,3 +50,15 @@ export default [
     plugins: getBaseRollupPlugin()
   }
 ];
+
+
+const element = _jsxs("h1", {
+  children: [
+    _jsx("span", {
+      children: "1233"
+    }),
+    " ",
+    _jsx("span", {
+      children: "1233"
+    })]
+});
