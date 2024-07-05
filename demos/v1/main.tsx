@@ -2,8 +2,16 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 const App = () => {
   const [num, setNum] = useState(100);
-  window.setNum = setNum;
-  return <p>{num}</p>;
+
+  return (
+    <p
+      onClick={() => {
+        setNum(num + 1);
+      }}
+    >
+      {num}
+    </p>
+  );
 };
 
 // const comp = <div>12233</div>;
