@@ -95,7 +95,7 @@ function ChildRecociler(shouldTrackEffects: boolean) {
         deleteRemainingChildren(returnFiber, currentFiber.sibling);
         return existing;
       }
-      deleteRemainingChildren(returnFiber, currentFiber);
+      deleteChild(returnFiber, currentFiber);
       currentFiber = currentFiber.sibling;
     }
     const fiber = new FiberNode(HostText, { content }, null);
@@ -155,12 +155,14 @@ function ChildRecociler(shouldTrackEffects: boolean) {
 
   function reconcilerChildrenArray(
     returnFiber: FiberNode,
-    currentFirstChild: FiberNode,
+    currentFirstChild: FiberNode | null,
     newChildren: any[]
   ) {
-    //
+    // 遍历到的最后一个可复用fiber在before中的index
     let lastPlacedIndex: number = 0;
+    // 创建的最后一个fiber
     let lastNewFiber: FiberNode | null = null;
+    // 创建的第一个fiber
     let firstNewFiber: FiberNode | null = null;
     // 将current中所有同级fiber保存在Map中
     const existingChildMap: ExistingChildMap = new Map();
@@ -236,7 +238,7 @@ function ChildRecociler(shouldTrackEffects: boolean) {
           break;
       }
       // 多节点的情况
-      if (Array.isArray(newChild) && currentFiber !== null) {
+      if (Array.isArray(newChild)) {
         return reconcilerChildrenArray(returnFiber, currentFiber, newChild);
       }
     }
