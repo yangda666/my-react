@@ -86,8 +86,9 @@ function commitRoot(root: FiberRootNode) {
     // beforeMutation
     // Mutation
     commitMutationEffects(finishedWork);
-    root.current = finishedWork;
+
     // layout
+    root.current = finishedWork;
   } else {
     root.current = finishedWork;
   }
@@ -108,14 +109,14 @@ function perFormUnitOfWork(fiber: FiberNode) {
   // 执行完beginWork后，pendingProps 变为 memoizedProps
   fiber.memoizedProps = fiber.pendingProps;
   if (next === null) {
-    completeUniOfWork(fiber);
+    completeUnitOfWork(fiber);
   } else {
     workInProgress = next;
   }
 }
 
 // 完成的工作单元
-function completeUniOfWork(fiber: FiberNode) {
+function completeUnitOfWork(fiber: FiberNode) {
   let node: FiberNode | null = fiber;
   do {
     const next = completeWork(node);
@@ -125,7 +126,7 @@ function completeUniOfWork(fiber: FiberNode) {
     }
     const sibling = node.sibling;
     if (sibling) {
-      workInProgress = next;
+      workInProgress = sibling;
       return;
     }
     node = node.return;

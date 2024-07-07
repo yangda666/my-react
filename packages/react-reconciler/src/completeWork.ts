@@ -21,6 +21,9 @@ function markUpdate(fiber: FiberNode) {
 
 // 对比 curret fiber 与 workInprogress Fiber 的变化创建出新的 element, 并将父作用向上冒泡
 export const completeWork = (workInProgress: FiberNode) => {
+  if (__DEV__) {
+    console.log('complete流程', workInProgress.type);
+  }
   const newProps = workInProgress.pendingProps;
   const current = workInProgress.alternate;
   switch (workInProgress.tag) {
@@ -54,10 +57,10 @@ export const completeWork = (workInProgress: FiberNode) => {
       bubbleProperties(workInProgress);
       return null;
     case HostText: {
-      if (workInProgress.alternate) {
+      if (current !== null && workInProgress.stateNode) {
         // update
-        const oldText = workInProgress.alternate.memoizedProps.content;
-        const newText = workInProgress.memoizedProps.content;
+        const oldText = current.memoizedProps?.content;
+        const newText = newProps.content;
         if (oldText !== newText) {
           markUpdate(workInProgress);
         }
@@ -81,25 +84,24 @@ export const completeWork = (workInProgress: FiberNode) => {
 };
 
 // 递归处理将所有的子节点挂在父容器中
-function appendAllChildren(parent: Instance, wip: FiberNode) {
-  let node = wip.child;
+const appendAllChildren = (parent: Instance, workInProgress: FiberNode) => {
+  // 遍历workInProgress所有子孙 DOM元素，依次挂载
+  let node = workInProgress.child;
   while (node !== null) {
     if (node.tag === HostComponent || node.tag === HostText) {
-      // 如果是 HostComponent 或 HostText，将其 DOM 节点附加到父节点
       appendInitialChild(parent, node.stateNode);
     } else if (node.child !== null) {
-      // 如果有子节点，递归处理
       node.child.return = node;
       node = node.child;
       continue;
     }
-    if (node === wip) {
+
+    if (node === workInProgress) {
       return;
     }
 
-    // 处理兄弟节点
     while (node.sibling === null) {
-      if (node.return === null || node.return === wip) {
+      if (node.return === null || node.return === workInProgress) {
         return;
       }
       node = node.return;
@@ -107,8 +109,7 @@ function appendAllChildren(parent: Instance, wip: FiberNode) {
     node.sibling.return = node.return;
     node = node.sibling;
   }
-}
-
+};
 function bubbleProperties(completedWork: FiberNode) {
   let subtreeFlags = NoFlags;
   let child = completedWork.child;

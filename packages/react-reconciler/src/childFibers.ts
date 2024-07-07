@@ -8,7 +8,7 @@ import {
 import { ChildDeletion, Placement } from './fiberFlags';
 import { HostText } from './workTags';
 
-export type ExistingChildMap = Map<string | number, FiberNode>;
+export type ExistingChildren = Map<string | number, FiberNode>;
 
 function ChildRecociler(shouldTrackEffects: boolean) {
   // 删除剩下的fiber
@@ -112,93 +112,100 @@ function ChildRecociler(shouldTrackEffects: boolean) {
 
   function updateFromMap(
     returnFiber: FiberNode,
-    existingChildMap: ExistingChildMap,
+    existingChildren: ExistingChildren,
     index: number,
     element: any
   ): FiberNode | null {
-    const keyToUse = element.key !== null ? element.key : index;
-    const before = existingChildMap.get(keyToUse);
-    if (typeof element === 'string' || typeof element === 'number') {
-      // 说明他是HostText
-      if (before !== undefined) {
-        // 说明之前有这个值
+    let keyToUse;
+    if (typeof element === 'string') {
+      keyToUse = index;
+    } else {
+      keyToUse = element.key !== null ? element.key : index;
+    }
+    const before = existingChildren.get(keyToUse);
+
+    if (typeof element === 'string') {
+      if (before) {
+        // fiber key相同，如果type也相同，则可复用
+        existingChildren.delete(keyToUse);
         if (before.tag === HostText) {
-          // 说明可以复用
-          // 将其从 existingChildMap 中删除
-          existingChildMap.delete(keyToUse);
-          return useFiber(before, { contet: element + '' });
+          // 复用文本节点
+          return useFiber(before, { content: element });
+        } else {
+          deleteChild(returnFiber, before);
         }
       }
-      return new FiberNode(HostText, { content: element + '' }, null);
+      // 新建文本节点
+      return new FiberNode(HostText, { content: element }, null);
     }
     if (typeof element === 'object' && element !== null) {
       switch (element.$$typeof) {
         case REACT_ELEMENT_TYPE:
           if (before) {
+            // fiber key相同，如果type也相同，则可复用
+            existingChildren.delete(keyToUse);
             if (before.type === element.type) {
-              // 可以复用 则删除
-              existingChildMap.delete(keyToUse);
+              // 复用
               return useFiber(before, element.props);
+            } else {
+              deleteChild(returnFiber, before);
             }
           }
           return createFiberFormElemnt(element);
-        default:
-          break;
-      }
-      // 可能是数组
-      if (Array.isArray(element) && __DEV__) {
-        console.warn('未实现数组类型');
       }
     }
+    console.error('updateFromMap未处理的情况', before, element);
     return null;
   }
 
   function reconcilerChildrenArray(
     returnFiber: FiberNode,
     currentFirstChild: FiberNode | null,
-    newChildren: any[]
+    newChild: any[]
   ) {
-    // 遍历到的最后一个可复用fiber在before中的index
+    // 最后一个可复用fiber在current中的index
     let lastPlacedIndex: number = 0;
     // 创建的最后一个fiber
     let lastNewFiber: FiberNode | null = null;
     // 创建的第一个fiber
     let firstNewFiber: FiberNode | null = null;
-    // 将current中所有同级fiber保存在Map中
-    const existingChildMap: ExistingChildMap = new Map();
-    let currentFiber: FiberNode | null = currentFirstChild;
-    while (currentFiber !== null) {
-      const keyToUse =
-        currentFiber.key !== null ? currentFiber.key : currentFiber.index;
-      existingChildMap.set(keyToUse, currentFiber);
-      currentFiber = currentFiber.sibling;
+
+    // 1.将current保存在map中
+    const existingChildren: ExistingChildren = new Map();
+    let current = currentFirstChild;
+    while (current !== null) {
+      const keyToUse = current.key !== null ? current.key : current.index;
+      existingChildren.set(keyToUse, current);
+      current = current.sibling;
     }
-    // 遍历newChild数组，对于每个遍历到的element，存在两种情况：
-    // 在Map中存在对应current fiber，且可以复用
-    // 在Map中不存在对应current fiber，或不能复用
-    // 判断是插入还是移动
-    // 最后Map中剩下的都标记删除
-    for (let i = 0; i < newChildren.length; i++) {
-      const after = newChildren[i];
-      const newFiber = updateFromMap(returnFiber, existingChildMap, i, after);
+
+    for (let i = 0; i < newChild.length; i++) {
+      // 2.遍历newChild，寻找是否可复用
+      const after = newChild[i];
+      const newFiber = updateFromMap(returnFiber, existingChildren, i, after);
+
       if (newFiber === null) {
         continue;
       }
+
+      // 3. 标记移动还是插入
       newFiber.index = i;
       newFiber.return = returnFiber;
+
       if (lastNewFiber === null) {
         lastNewFiber = newFiber;
         firstNewFiber = newFiber;
       } else {
         lastNewFiber.sibling = newFiber;
-        lastNewFiber = newFiber;
+        lastNewFiber = lastNewFiber.sibling;
       }
 
-      // 判断是否移动
-      // 找到老的fiber
+      if (!shouldTrackEffects) {
+        continue;
+      }
+
       const current = newFiber.alternate;
       if (current !== null) {
-        // 老的位置
         const oldIndex = current.index;
         if (oldIndex < lastPlacedIndex) {
           // 移动
@@ -213,8 +220,8 @@ function ChildRecociler(shouldTrackEffects: boolean) {
         newFiber.flags |= Placement;
       }
     }
-    // 删除掉map中剩余的节点
-    existingChildMap.forEach((fiber) => {
+    // 4. 将Map中剩下的标记为删除
+    existingChildren.forEach((fiber) => {
       deleteChild(returnFiber, fiber);
     });
     return firstNewFiber;

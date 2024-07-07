@@ -20,27 +20,28 @@ import {
   HostText
 } from './workTags';
 
-let nexEffect: FiberNode | null = null;
+let nextEffect: FiberNode | null = null;
+// 以DFS形式执行
 export const commitMutationEffects = (finishedWork: FiberNode) => {
-  nexEffect = finishedWork;
-  while (nexEffect !== null) {
-    // 向下便利
-    const child = nexEffect.child;
-    if ((nexEffect.subtreeFlags & MutationMask) !== NoFlags && child !== null) {
-      // 说明子节点还有存在变异 所以向下便利
-      // nexEffect.child;
-      nexEffect = child;
+  nextEffect = finishedWork;
+  while (nextEffect !== null) {
+    // 向下遍历
+    const child: FiberNode | null = nextEffect.child;
+    if (
+      (nextEffect.subtreeFlags & MutationMask) !== NoFlags &&
+      child !== null
+    ) {
+      nextEffect = child;
     } else {
-      // 找到最后一个需要变异的节点
-      up: while (nexEffect !== null) {
-        commitMutationEffectsOnFiber(nexEffect);
-        // 子节点
-        const sibling = nexEffect.sibling;
+      // 向上遍历
+      up: while (nextEffect !== null) {
+        commitMutationEffectsOnFiber(nextEffect);
+        const sibling: FiberNode | null = nextEffect.sibling;
         if (sibling !== null) {
-          nexEffect = sibling;
+          nextEffect = sibling;
           break up;
         }
-        nexEffect = nexEffect.return;
+        nextEffect = nextEffect.return;
       }
     }
   }

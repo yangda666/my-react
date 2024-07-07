@@ -9,8 +9,11 @@ import {
   HostRoot,
   HostText
 } from './workTags';
-// 计算状态的最新值 和 创造子的fiber
+// 计算状态的最新值 和 子的fiber
 export function beginWork(wip: FiberNode) {
+  if (__DEV__) {
+    console.log('beginWork流程', wip.type);
+  }
   switch (wip.tag) {
     case HostRoot:
       return updateHostRoot(wip);
@@ -56,7 +59,7 @@ function updateHostComponent(wip: FiberNode) {
 function reconcileChildren(wip: FiberNode, children: ReactElementType) {
   const current = wip.alternate;
   if (current !== null) {
-    wip.child = reconcileChildFibers(wip, current?.child, children);
+    wip.child = reconcileChildFibers(wip, current.child, children);
   } else {
     wip.child = mountChildFiber(wip, null, children);
   }

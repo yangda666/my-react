@@ -6,6 +6,7 @@ import { DOMElement, updateFiberProps } from './SyntheticEvent';
 export type Container = Element;
 export type TextInstance = Text;
 export type Instance = Element;
+
 // export function createInstance(...args: any) {
 //   return {} as any;
 // }
@@ -23,11 +24,11 @@ export const createTextInstance = (content: string) => {
   return document.createTextNode(content);
 };
 
-export const appendInitialChild = (parent: Instance, child: Instance) => {
+export const appendInitialChild = (
+  parent: Instance | Container,
+  child: Instance
+) => {
   parent.appendChild(child);
-  if (__DEV__) {
-    console.warn('parent', parent);
-  }
 };
 
 export const insertChildToContainer = (
