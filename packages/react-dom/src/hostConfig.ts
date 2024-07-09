@@ -36,7 +36,7 @@ export const insertChildToContainer = (
   container: Container,
   before: Instance
 ) => {
-  container.insertBefore(child, before);
+  container.insertBefore(before, child);
 };
 
 export const appendChildToContainer = (

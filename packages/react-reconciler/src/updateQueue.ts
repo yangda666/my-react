@@ -14,6 +14,9 @@ export type UpdateQueue<State = any> = {
 };
 
 export const createUpdate = (action: UpdateAction) => {
+  if (__DEV__) {
+    console.warn('createUpdate', action);
+  }
   return {
     action
   };

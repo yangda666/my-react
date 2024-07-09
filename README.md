@@ -151,11 +151,11 @@ export default [
             ```s
             A1 - B2 - C1 - D2;
             ```
-        
+
             • 其中数字表示优先级，更新通过在之前状态后追加字母来应用。
-        
+
             • 第一轮渲染，优先级 1：
-        
+
             ```s
             基状态: ''
             更新: [A1, C1]
@@ -701,8 +701,8 @@ export type Fiber = {|
 
 新增的用于支持并发模式的字段：
 
-1. ***lanes*** 字段用于表示当前 Fiber 所处的更新优先级。它是一种位字段（bit field），每个位表示一个独立的更新车道（lane）。通过使用不同的车道，React 可以区分和调度不同优先级的更新，从而实现并发模式下的更细粒度的控制和调度。
-2. ***childLanes*** 字段用于表示子树中的更新优先级。它包含了当前 Fiber 的所有子 Fiber 的更新车道，通过 childLanes，React 可以快速确定子树中是否存在需要处理的高优先级更新。
+1. **_lanes_** 字段用于表示当前 Fiber 所处的更新优先级。它是一种位字段（bit field），每个位表示一个独立的更新车道（lane）。通过使用不同的车道，React 可以区分和调度不同优先级的更新，从而实现并发模式下的更细粒度的控制和调度。
+2. **_childLanes_** 字段用于表示子树中的更新优先级。它包含了当前 Fiber 的所有子 Fiber 的更新车道，通过 childLanes，React 可以快速确定子树中是否存在需要处理的高优先级更新。
 
 **React 有ReactElement 为什还需要Fiber**
 
@@ -725,13 +725,13 @@ FiberNode的优势:
 
 **Reconciler 的工作方式**
 
-------
+---
 
-Reconciler（协调器）是负责管理组件的更新。它的主要工作是处理组件树的变化，确保 UI 的状态与数据的变化保持同步，并通过调度器（Scheduler）来决定何时以及如何执行更新操作。它采用深度优先遍历构建workInProgress Fiber Tree。该过程采用 ‘递’和‘归’ 两个阶段 分别对应  beginWork 和 completeWork。
+Reconciler（协调器）是负责管理组件的更新。它的主要工作是处理组件树的变化，确保 UI 的状态与数据的变化保持同步，并通过调度器（Scheduler）来决定何时以及如何执行更新操作。它采用深度优先遍历构建workInProgress Fiber Tree。该过程采用 ‘递’和‘归’ 两个阶段 分别对应 beginWork 和 completeWork。
 
-​	beginWork ：根据当前的fiebrNode 创建下一级的FiberNode，在update 时标记Placement, ChildDelerion。
+​ beginWork ：根据当前的fiebrNode 创建下一级的FiberNode，在update 时标记Placement, ChildDelerion。
 
-​	completeWork：在mount 时构建DOM tree, 在update时标记update，并将副作用flag标记向上冒泡到父节点。
+​ completeWork：在mount 时构建DOM tree, 在update时标记update，并将副作用flag标记向上冒泡到父节点。
 
 **实现方式**
 
@@ -739,130 +739,200 @@ Reconciler（协调器）是负责管理组件的更新。它的主要工作是�
 let workInProgress: FiberNode | null = null;
 
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
-	const root = markUpdateLaneFromFiberToRoot(fiber);
+  const root = markUpdateLaneFromFiberToRoot(fiber);
 
-	if (root === null) {
-		return;
-	}
-	ensureRootIsScheduled(root);
+  if (root === null) {
+    return;
+  }
+  ensureRootIsScheduled(root);
 }
 
 function markUpdateLaneFromFiberToRoot(fiber: FiberNode) {
-	let node = fiber;
-	let parent = node.return;
-	while (parent !== null) {
-		node = parent;
-		parent = node.return;
-	}
-	if (node.tag === HostRoot) {
-		return node.stateNode;
-	}
-	return null;
+  let node = fiber;
+  let parent = node.return;
+  while (parent !== null) {
+    node = parent;
+    parent = node.return;
+  }
+  if (node.tag === HostRoot) {
+    return node.stateNode;
+  }
+  return null;
 }
 
 function ensureRootIsScheduled(root: FiberRootNode) {
-	// 一些调度行为
-	performSyncWorkOnRoot(root);
+  // 一些调度行为
+  performSyncWorkOnRoot(root);
 }
 
 function performSyncWorkOnRoot(root: FiberRootNode) {
-	// 初始化操作
-	prepareFreshStack(root);
+  // 初始化操作
+  prepareFreshStack(root);
 
-	// render阶段具体操作
-	do {
-		try {
-			workLoop();
-			break;
-		} catch (e) {
-			console.error('workLoop发生错误', e);
-			workInProgress = null;
-		}
-	} while (true);
+  // render阶段具体操作
+  do {
+    try {
+      workLoop();
+      break;
+    } catch (e) {
+      console.error('workLoop发生错误', e);
+      workInProgress = null;
+    }
+  } while (true);
 
-	if (workInProgress !== null) {
-		console.error('render阶段结束时wip不为null');
-	}
+  if (workInProgress !== null) {
+    console.error('render阶段结束时wip不为null');
+  }
 
-	const finishedWork = root.current.alternate;
-	root.finishedWork = finishedWork;
+  const finishedWork = root.current.alternate;
+  root.finishedWork = finishedWork;
 
-	// commit阶段操作
-	commitRoot(root);
+  // commit阶段操作
+  commitRoot(root);
 }
 
 function commitRoot(root: FiberRootNode) {
-	const finishedWork = root.finishedWork;
+  const finishedWork = root.finishedWork;
 
-	if (finishedWork === null) {
-		return;
-	}
-	// 重置
-	root.finishedWork = null;
+  if (finishedWork === null) {
+    return;
+  }
+  // 重置
+  root.finishedWork = null;
 
-	const subtreeHasEffect =
-		(finishedWork.subtreeFlags & MutationMask) !== NoFlags;
-	const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
+  const subtreeHasEffect =
+    (finishedWork.subtreeFlags & MutationMask) !== NoFlags;
+  const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
 
-	if (subtreeHasEffect || rootHasEffect) {
-		// 有副作用要执行
+  if (subtreeHasEffect || rootHasEffect) {
+    // 有副作用要执行
 
-		// 阶段1/3:beforeMutation
+    // 阶段1/3:beforeMutation
 
-		// 阶段2/3:Mutation
-		commitMutationEffects(finishedWork);
+    // 阶段2/3:Mutation
+    commitMutationEffects(finishedWork);
 
-		// Fiber Tree切换
-		root.current = finishedWork;
+    // Fiber Tree切换
+    root.current = finishedWork;
 
-		// 阶段3:Layout
-	} else {
-		// Fiber Tree切换
-		root.current = finishedWork;
-	}
+    // 阶段3:Layout
+  } else {
+    // Fiber Tree切换
+    root.current = finishedWork;
+  }
 }
 
 function prepareFreshStack(root: FiberRootNode) {
-	workInProgress = createWorkInProgress(root.current, {});
+  workInProgress = createWorkInProgress(root.current, {});
 }
 
 function workLoop() {
-	while (workInProgress !== null) {
-		performUnitOfWork(workInProgress);
-	}
+  while (workInProgress !== null) {
+    performUnitOfWork(workInProgress);
+  }
 }
 
 // 执行工作单元
 function performUnitOfWork(fiber: FiberNode) {
-	const next = beginWork(fiber);
-	// 执行完beginWork后，pendingProps 变为 memoizedProps
-	fiber.memoizedProps = fiber.pendingProps;
-	if (next === null) {
-		completeUnitOfWork(fiber);
-	} else {
-		workInProgress = next;
-	}
+  const next = beginWork(fiber);
+  // 执行完beginWork后，pendingProps 变为 memoizedProps
+  fiber.memoizedProps = fiber.pendingProps;
+  if (next === null) {
+    completeUnitOfWork(fiber);
+  } else {
+    workInProgress = next;
+  }
 }
 
 function completeUnitOfWork(fiber: FiberNode) {
-	let node: FiberNode | null = fiber;
+  let node: FiberNode | null = fiber;
 
-	do {
-		const next = completeWork(node);
+  do {
+    const next = completeWork(node);
 
-		if (next !== null) {
-			workInProgress = next;
-			return;
-		}
+    if (next !== null) {
+      workInProgress = next;
+      return;
+    }
 
-		const sibling = node.sibling;
-		if (sibling) {
-			workInProgress = next;
-			return;
-		}
-		node = node.return;
-		workInProgress = node;
-	} while (node !== null);
+    const sibling = node.sibling;
+    if (sibling) {
+      workInProgress = next;
+      return;
+    }
+    node = node.return;
+    workInProgress = node;
+  } while (node !== null);
 }
 ```
 
+# react Diff 算法
+
+## 两种情况
+
+1. 更新后为单节点
+
+- 更新前为单节点
+  A1 -> A2
+  A1 -> B1
+- 更新前为多节点
+  A1B1 -> A1
+
+只有在 `key` 与 `type` 相同时 才能复用当前节点 其他情况都不能复用
+
+实现思路：
+
+- 找出比较节点的 `key` 与 `type` 相同则复用
+
+- 删除其他不能复用的兄弟节点
+
+![alt text](./images/singleDiff.png)
+
+代码实现
+
+```tsx
+// 单节点
+function reconcilerSingleElement(
+  returnFiber: FiberNode,
+  currentFiber: FiberNode | null,
+  element: ReactElementType
+) {
+  // 1. 查看是否可以复用fiber currentFiber 与 wip 的fiber 做对比
+  const key = element.key;
+  while (currentFiber !== null) {
+    // update
+    if (currentFiber.key === key) {
+      // key 相同
+      if (element.$$typeof === REACT_ELEMENT_TYPE) {
+        if (currentFiber.type === element.type) {
+          // 当前节点的key 与 type 相同
+          // 复用 fiber
+          const existing = useFiber(currentFiber, element.props);
+          existing.return = returnFiber;
+          // 当前节点可复用 删除剩下的兄弟节点
+          deleteRemainingChildren(returnFiber, currentFiber.sibling);
+          return existing;
+        }
+        // type 不同 说明没有可复用的节点 删除所有旧的节点
+        deleteRemainingChildren(returnFiber, currentFiber);
+        break;
+      } else {
+        if (__DEV__) {
+          console.warn('还未实现的reconciler', element);
+          break;
+        }
+      }
+    } else {
+      // key 不同删除当前的节点 并继续遍历
+      deleteChild(returnFiber, currentFiber);
+      currentFiber = currentFiber.sibling;
+    }
+  }
+  // 创建fiber
+  const fiber = createFiberFormElemnt(element);
+  fiber.return = returnFiber;
+  return fiber;
+}
+```
+
+2. 更新后为多节点

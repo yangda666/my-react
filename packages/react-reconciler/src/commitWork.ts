@@ -90,7 +90,11 @@ const commitPlacement = (finishedWork: FiberNode) => {
   }
 
   // appendChild / insertBefore
-  insertOrAppendPlacementNodeIntoContainer(finishedWork, parentStateNode);
+  insertOrAppendPlacementNodeIntoContainer(
+    finishedWork,
+    parentStateNode,
+    sibling
+  );
 };
 
 function getHostSibling(fiber: FiberNode) {
