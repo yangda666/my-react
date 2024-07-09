@@ -256,7 +256,7 @@ function ChildRecociler(shouldTrackEffects: boolean) {
     }
     //兜底
     if (currentFiber !== null) {
-      deleteChild(returnFiber, currentFiber);
+      deleteRemainingChildren(returnFiber, currentFiber);
     }
     if (__DEV__) {
       console.warn('未实现reconcile类型', newChild);
