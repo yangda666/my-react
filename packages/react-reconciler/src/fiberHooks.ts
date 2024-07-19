@@ -11,8 +11,10 @@ import {
 } from './updateQueue';
 import { scheduleUpdateOnFiber } from './workLoop';
 
+// 当前正在renderFC的Fiber
 let currentlyRenderingFiber: FiberNode | null = null;
 let workInProgressHook: Hook | null = null;
+// 当前工作中的hook
 let currentHook: Hook | null = null;
 let { currentDispatcher } = internals;
 interface Hook {
@@ -120,8 +122,8 @@ function updateWorkInProgressHook(): Hook {
   }
 
   if (nextCurrentHook === null) {
-    // mount/update u1 u2 u3
-    // update       u1 u2 u3 u4
+    // mount u1 u2 u3
+    // update u1 u2 u3 u4
     throw new Error(
       `组件${currentlyRenderingFiber?.type}本次执行时的Hook比上次执行时多`
     );
@@ -134,7 +136,7 @@ function updateWorkInProgressHook(): Hook {
     next: null
   };
   if (workInProgressHook === null) {
-    // mount时 第一个hook
+    // update时 第一个hook
     if (currentlyRenderingFiber === null) {
       throw new Error('请在函数组件内调用hook');
     } else {
@@ -142,7 +144,7 @@ function updateWorkInProgressHook(): Hook {
       currentlyRenderingFiber.memoizedState = workInProgressHook;
     }
   } else {
-    // mount时 后续的hook
+    // update时 后续的hook
     workInProgressHook.next = newHook;
     workInProgressHook = newHook;
   }

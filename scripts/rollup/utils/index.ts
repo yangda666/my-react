@@ -1,13 +1,12 @@
 import comm from '@rollup/plugin-commonjs';
 import replacePlugin from '@rollup/plugin-replace';
 import { readFileSync } from 'fs';
-import path from 'path';
 
-const pkgPath = path.resolve(__dirname, '../../../packages');
-const distPath = path.resolve(__dirname, '../../../dist/node_modules');
+// const pkgPath = path.resolve(__dirname, '../../../packages');
+// const distPath = path.resolve(__dirname, '../../../dist/node_modules');
 
-// const pkgPath = '/Users/junyang/workSpace/my-react/packages';
-// const distPath = '/Users/junyang/workSpace/my-react/dist/node_modules';
+const pkgPath = '/Users/junyang/workSpace/my-react/packages';
+const distPath = '/Users/junyang/workSpace/my-react/dist/node_modules';
 
 console.log('pkgPath', pkgPath);
 

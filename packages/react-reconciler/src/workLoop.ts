@@ -25,7 +25,7 @@ export function scheduleUpdateOnFiber(fiber: FiberNode) {
   if (root === null) {
     return;
   }
-  //
+  // 执行渲染root
   renderRoot(root);
 }
 function markUpdateFormFiberToRoot(fiber: FiberNode) {

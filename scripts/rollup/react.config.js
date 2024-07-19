@@ -50,15 +50,3 @@ export default [
     plugins: getBaseRollupPlugin()
   }
 ];
-
-
-const element = _jsxs("h1", {
-  children: [
-    _jsx("span", {
-      children: "1233"
-    }),
-    " ",
-    _jsx("span", {
-      children: "1233"
-    })]
-});
